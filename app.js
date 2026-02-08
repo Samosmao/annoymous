@@ -8,7 +8,8 @@ app.listen(process.env.PORT || 80, () => console.log("Server is running...!"));
 app.use(express.json());
 app.use(cors({
     origin: [
-        "http://127.0.0.1:5500"
+        "http://127.0.0.1:5500",
+        "https://annoymous.vercel.app"
     ],
     credentials: true,
 }));
