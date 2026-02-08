@@ -13,7 +13,7 @@ app.use(cors({
     credentials: true,
 }));
 
-app.post("/api/generatekhqr", (req, res) => {
+app.post("/generatekhqr", (req, res) => {
     const { price, planName } = req.body
     const storeName = "Annoymous Shop"
 
@@ -49,7 +49,7 @@ app.post("/api/generatekhqr", (req, res) => {
 })
 
 
-app.post("/api/checkkhqr", (req, res) => {
+app.post("/checkkhqr", (req, res) => {
     const headers = {
         headers: {
             'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiM2E5MjA5NjhkMTg1NDAyOCJ9LCJpYXQiOjE3NzA1ODI0NDgsImV4cCI6MTc3ODM1ODQ0OH0.pAfaIvrQMY31RHZk55o9o0tUh_82JAhk6rnYoUUq2iI.eyJkYXRhIjp7ImlkIjoiMzYzZmY2ODQ4MDdhNGUzIn0sImlhdCI6MTcyMjI4NzA3NCwiZXhwIjoxNzMwMDYzMDc0fQ.h-rECLcYYRvxFsbW6vqllC-hXgDUzc3dHa-IarPjKH0`,
