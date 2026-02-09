@@ -80,3 +80,7 @@ app.post("/api/checkkhqr", (req, res) => {
         })
     })
 })
+
+app.get('/Health', (req,res) => {
+    res.status(200).send('Server der');
+});
