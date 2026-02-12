@@ -50,45 +50,44 @@ app.post("/api/generatekhqr", (req, res) => {
 
 
 app.post("/api/checkkhqr", async (req, res) => {
-  try {
-    const md5 = req.body.md5;
-    if (!md5) return res.json({ success: false, error: "Missing md5" });
+    try {
+        const md5 = req.body.md5;
+        if (!md5) {
+            return res.json({ success: false, error: "ខ្វះ MD5" });
+        }
 
-    const response = await axios.post(
-      "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5",
-      { md5 },
-      {
-        headers: {
-          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiM2E5MjA5NjhkMTg1NDAyOCJ9LCJpYXQiOjE3NzA1ODI0NDgsImV4cCI6MTc3ODM1ODQ0OH0.pAfaIvrQMY31RHZk55o9o0tUh_82JAhk6rnYoUUq2iI`, 
-          "Content-Type": "application/json",
-        },
-      }
-    );
+        // ប្រើ Relay endpoint ជំនួស Bakong ផ្ទាល់
+        const relayUrl = "https://api.bakongrelay.com/v1/check_transaction_by_md5";  
 
-    const apiData = response.data;
+        const response = await axios.post(
+            relayUrl,
+            { md5: md5 },
+            {
+                headers: {
+                    'Authorization': `Bearer rbkOWCSsR2kJVOkRT_r88q7S__IOFIdAk3cRuAz07p-FMQ`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
 
-    console.log("Bakong response:", JSON.stringify(apiData, null, 2)); // ← very important!
+        console.log("Relay Response:", JSON.stringify(response.data, null, 2));
 
-    // Typical success condition people use:
-    const isPaid =
-      apiData.responseCode === 0 ||
-      apiData.responseCode === "0" ||
-      (apiData.data && apiData.data.transaction); // more reliable in some cases
+        // ពិនិត្យ responseCode (ជាទូទៅដូចគ្នា)
+        const isPaid = response.data.responseCode === 0 || response.data.responseCode === "0";
 
-    res.json({
-      success: !!isPaid,
-      // optional debug help
-      responseCode: apiData.responseCode,
-      hasTransaction: !!apiData?.data?.transaction,
-    });
+        res.json({
+            success: isPaid,
+            details: response.data  // សម្រាប់ debug
+        });
 
-  } catch (err) {
-    console.error("Bakong check error:", err?.response?.data || err.message);
-    res.json({
-      success: false,
-      error: err.message,
-    });
-  }
+    } catch (err) {
+        console.error("Relay Error:", err.response?.status, err.response?.data || err.message);
+        res.json({
+            success: false,
+            error: "មានបញ្ហាជាមួយ Bakong Relay",
+            status: err.response?.status
+        });
+    }
 });
 
 app.get('/Health', (req,res) => {
