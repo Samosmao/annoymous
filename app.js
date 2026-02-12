@@ -49,37 +49,47 @@ app.post("/api/generatekhqr", (req, res) => {
 })
 
 
-app.post("/api/checkkhqr", (req, res) => {
-    const headers = {
+app.post("/api/checkkhqr", async (req, res) => {
+  try {
+    const md5 = req.body.md5;
+    if (!md5) return res.json({ success: false, error: "Missing md5" });
+
+    const response = await axios.post(
+      "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5",
+      { md5 },
+      {
         headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiM2E5MjA5NjhkMTg1NDAyOCJ9LCJpYXQiOjE3NzA1ODI0NDgsImV4cCI6MTc3ODM1ODQ0OH0.pAfaIvrQMY31RHZk55o9o0tUh_82JAhk6rnYoUUq2iI.eyJkYXRhIjp7ImlkIjoiMzYzZmY2ODQ4MDdhNGUzIn0sImlhdCI6MTcyMjI4NzA3NCwiZXhwIjoxNzMwMDYzMDc0fQ.h-rECLcYYRvxFsbW6vqllC-hXgDUzc3dHa-IarPjKH0`,
-            'Content-Type': 'application/json'
-        }
-    }
-    const data = {
-        md5: req.body.md5
-    }
-    axios.post("https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5", data, headers).then(async (result) => {
-        if (result.data.responseCode == 0) {
-            if (result.data) {
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiM2E5MjA5NjhkMTg1NDAyOCJ9LCJpYXQiOjE3NzA1ODI0NDgsImV4cCI6MTc3ODM1ODQ0OH0.pAfaIvrQMY31RHZk55o9o0tUh_82JAhk6rnYoUUq2iI`, 
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-                //do something
+    const apiData = response.data;
 
-                res.json({
-                    success: true
-                })
-            }
-        } else {
-            res.json({
-                success: false
-            })
-        }
-    }).catch((e) => {
-        res.json({
-            success: false
-        })
-    })
-})
+    console.log("Bakong response:", JSON.stringify(apiData, null, 2)); // ← very important!
+
+    // Typical success condition people use:
+    const isPaid =
+      apiData.responseCode === 0 ||
+      apiData.responseCode === "0" ||
+      (apiData.data && apiData.data.transaction); // more reliable in some cases
+
+    res.json({
+      success: !!isPaid,
+      // optional debug help
+      responseCode: apiData.responseCode,
+      hasTransaction: !!apiData?.data?.transaction,
+    });
+
+  } catch (err) {
+    console.error("Bakong check error:", err?.response?.data || err.message);
+    res.json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
 
 app.get('/Health', (req,res) => {
     res.status(200).send('Server der');
